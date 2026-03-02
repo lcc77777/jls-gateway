@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JANUS-LOGIC-SILICON | GATEWAY</title>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --neon: #39FF14;
+            --dark: #050505;
+            --dim: #1a1a1a;
+            --text-dim: #666;
+            --error: #FF3131;
+            --gold: #FFD700;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--dark);
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* 初始隐藏，由启动脚本控制显现 */
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        /* Scanline Effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 500;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* --- 启动页动效 (Boot Screen) --- */
+        #boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--dark);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            overflow: hidden;
+        }
+
+        .boot-log {
+            font-size: 0.65rem;
+            color: var(--neon);
+            line-height: 1.4;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+
+        .boot-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 12px;
+            background: var(--neon);
+            animation: blink 0.5s infinite;
+        }
+
+        /* --- 主界面样式 --- */
+        .container {
+            width: 100%;
+            max-width: 500px;
+            z-index: 10;
+        }
+
+        header {
+            margin-bottom: 30px;
+            border-left: 4px solid var(--neon);
+            padding-left: 15px;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0;
+            color: var(--neon);
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--neon);
+        }
+
+        .version {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 5px;
+        }
+
+        .module {
+            display: none;
+            border: 1px solid #333;
+            padding: 25px;
+            background: rgba(10, 10, 10, 0.9);
+            margin-top: 20px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .module.active {
+            display: block;
+        }
+
+        h2 {
+            color: var(--neon);
+            font-size: 0.9rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #222;
+            padding-bottom: 5px;
+        }
+
+        .terminal-log {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+            min-height: 1.2rem;
+            word-break: break-all;
+        }
+
+        #log-text {
+            color: var(--neon);
+        }
+
+        #log-text.error {
+            color: var(--error);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.65rem;
+            color: #555;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        input {
+            background: var(--dim);
+            border: 1px solid #444;
+            color: var(--neon);
+            width: 100%;
+            font-size: 1.2rem;
+            padding: 12px;
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+            border-radius: 0;
+        }
+
+        input:focus {
+            border-color: var(--neon);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+        }
+
+        input::placeholder {
+            color: #333;
+        }
+
+        .btn {
+            background: var(--neon);
+            color: #000;
+            border: none;
+            width: 100%;
+            padding: 18px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: inherit;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #fff;
+            box-shadow: 0 0 20px var(--neon);
+        }
+
+        .btn:disabled {
+            background: #222;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #111;
+            color: var(--neon);
+            border: 1px solid var(--neon);
+            padding: 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal {
+            border: 2px solid var(--neon);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            background: #000;
+        }
+
+        .reward-info {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.7rem;
+            color: var(--gold);
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .info-link {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.6rem;
+            color: #888;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #000;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: var(--neon);
+            border: 1px solid #222;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            text-align: left;
+            margin-bottom: 0;
+            max-height: 300px;
+            min-height: 150px;
+        }
+
+        #debug-panel {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(57, 255, 20, 0.05);
+            color: var(--neon);
+            font-size: 0.6rem;
+            padding: 5px;
+            border: 1px solid #222;
+            z-index: 100;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 40px 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #333;
+        }
+
+        /* Animations */
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1rem;
+            background: var(--neon);
+            vertical-align: middle;
+            animation: blink 1s infinite;
+        }
+    </style>
+</head>
+
+<body id="main-body">
+
+    <div class="scanlines"></div>
+
+    <!-- Boot Screen Overlay -->
+    <div id="boot-screen">
+        <div id="boot-logs-container"></div>
+        <div class="boot-log">> SYSTEM_UP <span class="boot-cursor"></span></div>
+    </div>
+
+    <div id="debug-panel">DEBUG: READY</div>
+
+    <div class="container">
+        <header>
+            <h1>JANUS-LOGIC-SILICON</h1>
+            <div class="version">ESTABLISHING CONNECTION... v1.1.0-READY</div>
+        </header>
+
+        <!-- Decoder Interface -->
+        <div id="mod-decoder" class="module active">
+            <h2>Logic_Decoder_Gateway</h2>
+            <div class="terminal-log">> <span id="log-text">IDLE_WAITING_FOR_INPUT</span><span class="cursor"></span>
+            </div>
+
+            <div class="input-group">
+                <label>JLS_Logic_Code (激活码)</label>
+                <input type="text" id="input-code" placeholder="XXXX-XXXX-XXXX" maxlength="14" spellcheck="false"
+                    autocomplete="off">
+            </div>
+
+            <button id="verify-btn" class="btn" onclick="handleVerify()">验证资产 (VERIFY_ASSET)</button>
+        </div>
+
+        <!-- Firmware Interface -->
+        <div id="mod-firmware" class="module">
+            <h2>Firmware_Data_Output</h2>
+            <div id="firmware-log" class="terminal-log">> 链路建立。正在执行动态解码... [ <span id="decrypt-percent">0%</span> ]
+            </div>
+
+            <div style="border: 1px solid #222; margin-bottom: 20px;">
+                <pre id="lisp-code"></pre>
+                <div id="copy-btn-wrapper" style="display:none;">
+                    <button class="btn btn-secondary" onclick="copyFirmware()"
+                        style="margin-top:0; border:none; border-top: 1px solid #222; width:100%;">
+                        COPIED_TO_CLIPBOARD (复制固件)
+                    </button>
+                </div>
+            </div>
+
+            <div id="proof-container" style="margin-bottom: 20px; display: none;">
+                <div style="font-size: 0.6rem; color: #444; margin-bottom: 5px;">> 同步凭证 (截图或复制联系 Leo)</div>
+                <div id="sync-proof"
+                    style="background:#111; padding:10px; border:1px dashed #333; font-size:0.7rem; color:var(--gold);">
+                </div>
+            </div>
+
+            <button class="btn" style="background:#111; color:#444;" onclick="location.reload()">TERMINATE_SESSION
+                (退出)</button>
+        </div>
+
+        <footer>
+            &copy; 2026 OBSIDIAN_LOGIC_SYSTEMS
+        </footer>
+    </div>
+
+    <div id="overlay">
+        <div class="modal">
+            <h2 style="border:none;">ASSET_RECOGNIZED</h2>
+
+            <div class="reward-info">
+                <strong>🕹 JANUS 特权奖励：</strong><br>
+                成功同步后，您的JANUS账户将获得 <strong>1000 Logic Fuel</strong>。Leo 将根据登记的 ID 手动为您注入燃料。
+                <div class="info-link" onclick="window.open('https://janus-os.com/', '_blank')">什么是 JanusOS？/ 去哪里注册？
+                </div>
+            </div>
+
+            <div class="input-group" style="text-align: left;">
+                <label>账号 / 邮箱 / 临时昵称</label>
+                <input type="text" id="input-user" placeholder="填写您的JANUS账号或临时昵称" spellcheck="false">
+                <div style="font-size: 0.55rem; color: #555; margin-top: 5px;">* 新用户可先填昵称，激活后请尽快前往官网注册任务。</div>
+            </div>
+
+            <p style="font-size: 0.7rem; color: #888; margin-top: 20px;">
+                卡带型号: <span id="target-model" style="color: var(--neon);">M5W</span>
+            </p>
+
+            <button id="claim-btn" class="btn" onclick="handleClaim()">同步并解锁固件 (SYNC_AND_UNLOCK)</button>
+            <button class="btn-secondary" style="width:100%; margin-top:10px; border:none;"
+                onclick="document.getElementById('overlay').style.display='none'">取消</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 配置 ---
+        const SUPABASE_URL = 'https://cepskrtlplsfyqiynpvo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_ShvyXR8a-hPBW43n0-FXMg_bPyDVsyJ';
+        const TARGET_TABLE = 'logic_inventory';
+
+        const debug = document.getElementById('debug-panel');
+        let _supabase;
+        let targetAsset = null;
+
+        // --- 启动动效逻辑 ---
+        const bootLogs = [
+            "KERNEL_INIT: [ OK ]",
+            "SYNCING_OBSIDIAN_REALM...",
+            "DECRYPTING_GATEWAY_V1.1.0",
+            "ESTABLISHING_LISP_BUFFER...",
+            "SCANNING_LOCAL_STORAGE...",
+            "ENV_CALIBRATION_COMPLETE",
+            "WELCOME_ARCHITECT_SEVEN..."
+        ];
+
+        async function runBootSequence() {
+            // 强制确保启动页显示
+            const bootScreen = document.getElementById('boot-screen');
+            bootScreen.style.display = 'flex';
+
+            const container = document.getElementById('boot-logs-container');
+            for (let log of bootLogs) {
+                const el = document.createElement('div');
+                el.className = 'boot-log';
+                el.innerText = "> " + log;
+                container.appendChild(el);
+                // 稍快一点的节奏
+                await new Promise(r => setTimeout(r, 80 + Math.random() * 100));
+            }
+
+            // 结束动画
+            setTimeout(() => {
+                bootScreen.style.transition = 'opacity 0.8s ease';
+                bootScreen.style.opacity = '0';
+                document.body.style.opacity = '1'; // 显示 body
+                setTimeout(() => {
+                    bootScreen.style.display = 'none';
+                }, 800);
+            }, 600);
+        }
+
+        // --- 页面初始化 ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlUid = urlParams.get('uid');
+
+        // 立即执行启动逻辑，不完全依赖 onload
+        document.addEventListener('DOMContentLoaded', () => {
+            runBootSequence();
+        });
+
+        try {
+            if (window.supabase) {
+                _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch (e) { console.error(e); }
+
+        // 输入格式化
+        const inputField = document.getElementById('input-code');
+        inputField.addEventListener('input', e => {
+            let val = e.target.value.replace(/[^\dA-Za-z]/g, '');
+            let formatted = '';
+            for (let i = 0; i < val.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += '-';
+                formatted += val[i];
+            }
+            e.target.value = formatted;
+            updateLog('INPUT: ' + (formatted || 'WAITING...'));
+        });
+
+        function updateLog(msg, isError = false) {
+            const log = document.getElementById('log-text');
+            log.innerText = msg;
+            log.className = isError ? 'error' : '';
+        }
+
+        // --- 核心业务逻辑 ---
+
+        async function handleVerify() {
+            const btn = document.getElementById('verify-btn');
+            const codeInput = inputField.value.trim();
+            const codeRaw = codeInput.replace(/-/g, '');
+
+            if (codeInput.length < 12) {
+                updateLog('ERR: 格式不完整', true);
+                return;
+            }
+
+            btn.disabled = true;
+            updateLog('正在核对逻辑指纹...');
+
+            const localRecord = localStorage.getItem('jls_redeemed_' + codeRaw.toLowerCase());
+
+            try {
+                const { data, error } = await _supabase
+                    .from(TARGET_TABLE)
+                    .select('*')
+                    .or(`id.ilike.${codeInput},id.ilike.${codeRaw}`)
+                    .single();
+
+                if (error || !data) {
+                    updateLog('ERR: 资产未登记', true);
+                    btn.disabled = false;
+                } else if (data.is_active === true) {
+                    if (localRecord === 'true') {
+                        updateLog('WELCOME_BACK, ARCHITECT.');
+                        renderFirmware(data, true);
+                    } else {
+                        updateLog('ERR: 资产已被他人占领', true);
+                        btn.disabled = false;
+                    }
+                } else {
+                    targetAsset = data;
+                    document.getElementById('target-model').innerText = data.model_id || 'M5W';
+                    if (urlUid) document.getElementById('input-user').value = urlUid;
+                    updateLog('ALIGNED: 资产匹配成功');
+                    document.getElementById('overlay').style.display = 'flex';
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                updateLog('ERR: 握手失败', true);
+                btn.disabled = false;
+            }
+        }
+
+        async function handleClaim() {
+            const claimBtn = document.getElementById('claim-btn');
+            const userHandle = document.getElementById('input-user').value.trim() || 'ANON_CLIENT';
+            claimBtn.disabled = true;
+            updateLog('正在注入逻辑燃料...');
+
+            try {
+                const { error } = await _supabase
+                    .from(TARGET_TABLE)
+                    .update({ is_active: true, user_id: userHandle })
+                    .eq('id', targetAsset.id);
+
+                if (!error) {
+                    const codeRaw = targetAsset.id.replace(/-/g, '').toLowerCase();
+                    localStorage.setItem('jls_redeemed_' + codeRaw, 'true');
+                    localStorage.setItem('jls_handle_' + codeRaw, userHandle);
+                    document.getElementById('overlay').style.display = 'none';
+                    renderFirmware(targetAsset, false);
+                } else {
+                    updateLog('ERR: 注入失败', true);
+                    claimBtn.disabled = false;
+                }
+            } catch (e) {
+                updateLog('ERR: 异常中断', true);
+                claimBtn.disabled = false;
+            }
+        }
+
+        // --- 动态解密动效 ---
+        const LISP_SOURCE = `(defmacro m5w-core-logic (payload)
+  \`(begin
+     (inject-fuel ,payload)
+     (sync-state :janus-os)
+     (emit-signal :aligned)))`;
+
+        async function renderFirmware(asset, isRecovery) {
+            document.getElementById('mod-decoder').style.display = 'none';
+            const modFirmware = document.getElementById('mod-firmware');
+            modFirmware.style.display = 'block';
+
+            if (isRecovery) {
+                document.getElementById('firmware-log').innerText = "> 资产已归档。正在重新加载镜像...";
+            }
+
+            const pre = document.getElementById('lisp-code');
+            const percent = document.getElementById('decrypt-percent');
+            const copyWrapper = document.getElementById('copy-btn-wrapper');
+            pre.innerText = "";
+
+            const lines = LISP_SOURCE.split('\n');
+            for (let i = 0; i < lines.length; i++) {
+                pre.innerText += lines[i] + '\n';
+                percent.innerText = Math.round(((i + 1) / lines.length) * 100) + "%";
+                await new Promise(r => setTimeout(r, 300)); // 稍快一点的解密速度
+            }
+
+            setTimeout(() => {
+                percent.innerText = "COMPLETE";
+                copyWrapper.style.display = "block";
+                const codeRaw = asset.id.replace(/-/g, '').toUpperCase();
+                const handle = localStorage.getItem('jls_handle_' + codeRaw.toLowerCase()) || 'ANON';
+                document.getElementById('sync-proof').innerText = `PROOF: [${codeRaw}] SYNCED TO [${handle}] @ ${new Date().toLocaleDateString()}`;
+                document.getElementById('proof-container').style.display = 'block';
+            }, 500);
+        }
+
+        function copyFirmware() {
+            const code = document.getElementById('lisp-code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert("固件代码已存入缓冲区");
+            });
+        }
+
+    </script>
+</body>
+
+</html>
