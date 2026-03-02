@@ -1,0 +1,35 @@
+﻿/  视觉色彩协议 (VCP),,,,
+分类 ID,逻辑层级,建议色彩名称,Hex 代码 (参考),视觉意象
+[K],KERNEL-CORE,Obsidian Singularity (黑曜石奇点),#0A0A0A ,极简黑白，代表无可争议的底层真相。
+[P],PROCESS-CONTROL,Overclock Cobalt (超频钴蓝),#0057FF,像冷色调的电流，代表效率与调度。
+[M],MEMORY-BUS,Vapor Amber (水汽琥珀),#FFB800,温暖的存储感，代表复盘与记忆的沉淀。
+[I],I/O-INTERFACE,Neural Phosphor (神经荧光绿),#39FF14,极具穿透力，代表信息的高效传输。
+[S],SECURITY-GATE,Warning Crimson (警示深红),#FF003C,代表防火墙、边界与熔断机制。
+[G],STRATEGY-LAYER,Quantum Violet (量子深紫),#8A2BE2,代表复杂环境下的博弈与多维视角。
+,,,,
+/  命名协议 (VCP),,,,
+产品线总称,JANUS-LOGIC-SILICON,逻辑硅基（简称 JLS）,,
+产品形态,LOGIC-CARTRIDGE,逻辑卡带,,
+分类编码协议,[K]、[P]、[M]...,分类ID（逻辑层级英文首字母）,,
+逻辑缩写规范,取模型名称的核心首字母，3-4位大写字母,"莫塔5问 → M5W
+MECE原则 → MECE
+诺依曼拆解 → VNM",,
+标准产品全称,"EN:
+逻辑缩写+LOGIC+CARTRIDGE
+CN:
+逻辑模型+功能简述","EN:
+M5W-LOGIC-CARTRIDGE
+CN:
+莫塔5问-真相审计",,
+,,,,
+完整的 SKU 示例,,,,
+逻辑模型,标准产品全称,视觉简码 (Short Code),内部序列号 (UID),
+莫塔5问,M5W-LOGIC-CARTRIDGE,JLS-K01,JLS-K01-M5W-V1,
+MECE原则,MECE-LOGIC-CARTRIDGE,JLS-K02,JLS-K02-MECE-V1,
+诺依曼拆解,VNM-LOGIC-CARTRIDGE,JLS-P01,JLS-P01-VNM-V1,
+蔡格尼克,ZE-LOGIC-CARTRIDGE,JLS-M01,JLS-M01-ZE-V1,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,

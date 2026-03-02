@@ -1,0 +1,40 @@
+﻿固件编号,JLS-[K01],,,
+逻辑层级,[KERNEL-CORE] ,[K],,
+单品：,M5W-LOGIC-CARTRIDGE,莫塔5问-真相审计,,
+当前版本,v1.0,,,
+发售状态,[ ] 开发中 (R&D),[ ]现货 (In-Stock),[-]待上架(Pre-Launch),[ ]已停产 (Vault)
+固件代码,,,,
+";; Murtagh's 5-Question Audit Macro v1.0 
+;; Logic: Recursive Blind-spot Detection 
+
+(defmacro murtagh-audit (context) 
+  `(recursive-process 
+    (map (fn (dimension) (audit-step dimension ,context)) 
+         '(:PROBABLE :CRITICAL :MISSING :LATENT :UNSPOKEN))))
+
+(defun audit-step (type context) 
+  (case type 
+    ;; 1. 常见原因 (Find all possible reasons) 
+    (:PROBABLE 
+     (lambda (c) (exhaustive-search :domain (extract-field c) :threshold :high))) 
+
+    ;; 2. 不可忽视的风险 (Important causes not to be missed) 
+    (:CRITICAL 
+     (lambda (c) (filter-by-impact :severity :fatal :status :neglected))) 
+
+    ;; 3. 容易遗漏的因素 (Commonly overlooked factors) 
+    (:MISSING 
+     (lambda (c) (scan-long-tail :pattern :low-frequency :logic :pitfall))) 
+
+    ;; 4. 潜在/掩盖的诱因 (Latent/Masked variables) 
+    (:LATENT 
+     (lambda (c) (detect-interference :masking-effect T :hidden-nodes T))) 
+
+    ;; 5. 未提及的残差信息 (Integrity/Residual check) 
+    (:UNSPOKEN 
+     (lambda (c) (evaluate-entropy :source :user-narrative :check :omission))))) 
+
+;; [EXECUTION-PROTOCOL] 
+;; 1. 将上下文压入 (murtagh-audit context) 
+;; 2. 强制执行递归展开，每一层必须输出其原子推导过程 
+;; 3. 最终输出：(reduce-to-optimal-insight (audit-results))",,,,

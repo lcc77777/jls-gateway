@@ -1,0 +1,24 @@
+[
+    {
+        "model_id": "JLS-K01-M5W-V1",
+        "short_code": "JLS-K01",
+        "category": "KERNEL-CORE",
+        "category_id": "K",
+        "name": "莫塔5问-真相审计",
+        "name_en": "M5W-LOGIC-CARTRIDGE",
+        "lisp_code": ";; Murtagh's 5-Question Audit Macro v1.0 \n;; Logic: Recursive Blind-spot Detection \n\n(defmacro murtagh-audit (context) \n  `(recursive-process \n    (map (fn (dimension) (audit-step dimension ,context)) \n         '(:PROBABLE :CRITICAL :MISSING :LATENT :UNSPOKEN))))\n\n(defun audit-step (type context) \n  (case type \n    ;; 1. 常见原因 (Find all possible reasons) \n    (:PROBABLE \n     (lambda (c) (exhaustive-search :domain (extract-field c) :threshold :high))) \n\n    ;; 2. 不可忽视的风险 (Important causes not to be missed) \n    (:CRITICAL \n     (lambda (c) (filter-by-impact :severity :fatal :status :neglected))) \n\n    ;; 3. 容易遗漏的因素 (Commonly overlooked factors) \n    (:MISSING \n     (lambda (c) (scan-long-tail :pattern :low-frequency :logic :pitfall))) \n\n    ;; 4. 潜在/掩盖的诱因 (Latent/Masked variables) \n    (:LATENT \n     (lambda (c) (detect-interference :masking-effect T :hidden-nodes T))) \n\n    ;; 5. 未提及的残差信息 (Integrity/Residual check) \n    (:UNSPOKEN \n     (lambda (c) (evaluate-entropy :source :user-narrative :check :omission))))) \n\n;; [EXECUTION-PROTOCOL] \n;; 1. 将上下文压入 (murtagh-audit context) \n;; 2. 强制执行递归展开，每一层必须输出其原子推导过程 \n;; 3. 最终输出：(reduce-to-optimal-insight (audit-results))",
+        "initial_fuel": 1000,
+        "quantity": 10
+    },
+    {
+        "model_id": "JLS-P01-VNM-V1",
+        "short_code": "JLS-P01",
+        "category": "PROCESS-CONTROL",
+        "category_id": "P",
+        "name": "诺依曼拆解-任务递归",
+        "name_en": "VNM-LOGIC-CARTRIDGE",
+        "lisp_code": "(defun venom-handshake (sig)\n  (if (is-venom sig)\n      (inject-venom 0xDEADBEEF)\n      (reject-signal)))",
+        "initial_fuel": 1000,
+        "quantity": 5
+    }
+]
