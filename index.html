@@ -583,7 +583,11 @@
             const pre = document.getElementById('lisp-code');
             const status = document.getElementById('firmware-log');
 
-            const rawLisp = atob(data.models_registry.lisp_code);
+            // 修复：UTF-8 安全的 Base64 解码
+            const b64 = data.models_registry.lisp_code;
+            const rawLisp = decodeURIComponent(atob(b64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
             pre.innerText = "";
             status.innerText = "> 链路锁定。正在注入固件镜像...";
 
