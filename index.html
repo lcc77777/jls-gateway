@@ -32,12 +32,10 @@
             align-items: center;
             min-height: 100vh;
             overflow-x: hidden;
-            /* 初始隐藏，由启动脚本控制显现 */
             opacity: 0;
             transition: opacity 1s ease;
         }
 
-        /* Scanline Effect */
         .scanlines {
             position: fixed;
             top: 0;
@@ -52,7 +50,6 @@
             opacity: 0.3;
         }
 
-        /* --- 启动页动效 (Boot Screen) --- */
         #boot-screen {
             position: fixed;
             top: 0;
@@ -84,7 +81,6 @@
             animation: blink 0.5s infinite;
         }
 
-        /* --- 主界面样式 --- */
         .container {
             width: 100%;
             max-width: 500px;
@@ -281,20 +277,6 @@
             min-height: 150px;
         }
 
-        #debug-panel {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(57, 255, 20, 0.05);
-            color: var(--neon);
-            font-size: 0.6rem;
-            padding: 5px;
-            border: 1px solid #222;
-            z-index: 100;
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
         footer {
             margin-top: auto;
             padding: 40px 0;
@@ -304,18 +286,15 @@
             color: #333;
         }
 
-        /* Animations */
         @keyframes blink {
-            0% {
+
+            0%,
+            100% {
                 opacity: 1;
             }
 
             50% {
                 opacity: 0;
-            }
-
-            100% {
-                opacity: 1;
             }
         }
 
@@ -330,25 +309,25 @@
     </style>
 </head>
 
-<body id="main-body">
+<body>
 
     <div class="scanlines"></div>
 
-    <!-- Boot Screen Overlay -->
     <div id="boot-screen">
         <div id="boot-logs-container"></div>
         <div class="boot-log">> SYSTEM_UP <span class="boot-cursor"></span></div>
     </div>
 
-    <div id="debug-panel">DEBUG: READY</div>
+    <div id="debug-panel"
+        style="position:fixed; bottom:10px; right:10px; font-size:0.6rem; color:var(--neon); opacity:0.5; z-index:1000;">
+        DEBUG: READY</div>
 
     <div class="container">
         <header>
             <h1>JANUS-LOGIC-SILICON</h1>
-            <div class="version">ESTABLISHING CONNECTION... v1.1.0-READY</div>
+            <div class="version">ESTABLISHING CONNECTION... v1.2.0-INDUSTRIAL</div>
         </header>
 
-        <!-- Decoder Interface -->
         <div id="mod-decoder" class="module active">
             <h2>Logic_Decoder_Gateway</h2>
             <div class="terminal-log">> <span id="log-text">IDLE_WAITING_FOR_INPUT</span><span class="cursor"></span>
@@ -363,57 +342,53 @@
             <button id="verify-btn" class="btn" onclick="handleVerify()">验证资产 (VERIFY_ASSET)</button>
         </div>
 
-        <!-- Firmware Interface -->
         <div id="mod-firmware" class="module">
             <h2>Firmware_Data_Output</h2>
-            <div id="firmware-log" class="terminal-log">> 链路建立。正在执行动态解码... [ <span id="decrypt-percent">0%</span> ]
-            </div>
+            <div id="firmware-log" class="terminal-log">> 链路建立。资产模型: <span id="display-model"
+                    style="color:var(--neon);">---</span></div>
 
             <div style="border: 1px solid #222; margin-bottom: 20px;">
                 <pre id="lisp-code"></pre>
                 <div id="copy-btn-wrapper" style="display:none;">
                     <button class="btn btn-secondary" onclick="copyFirmware()"
                         style="margin-top:0; border:none; border-top: 1px solid #222; width:100%;">
-                        COPIED_TO_CLIPBOARD (复制固件)
+                        复制解密固件 (COPY_FIRMWARE)
                     </button>
                 </div>
             </div>
 
             <div id="proof-container" style="margin-bottom: 20px; display: none;">
-                <div style="font-size: 0.6rem; color: #444; margin-bottom: 5px;">> 同步凭证 (截图或复制联系 Leo)</div>
+                <div style="font-size: 0.6rem; color: #444; margin-bottom: 5px;">> 同步凭证 (截图记录)</div>
                 <div id="sync-proof"
                     style="background:#111; padding:10px; border:1px dashed #333; font-size:0.7rem; color:var(--gold);">
                 </div>
             </div>
 
-            <button class="btn" style="background:#111; color:#444;" onclick="location.reload()">TERMINATE_SESSION
-                (退出)</button>
+            <button class="btn" style="background:#111; color:#444;"
+                onclick="location.reload()">TERMINATE_SESSION</button>
         </div>
 
-        <footer>
-            &copy; 2026 OBSIDIAN_LOGIC_SYSTEMS
-        </footer>
+        <footer>&copy; 2026 OBSIDIAN_LOGIC_SYSTEMS</footer>
     </div>
 
     <div id="overlay">
         <div class="modal">
             <h2 style="border:none;">ASSET_RECOGNIZED</h2>
-
             <div class="reward-info">
                 <strong>🕹 JANUS 特权奖励：</strong><br>
-                成功同步后，您的JANUS账户将获得 <strong>1000 Logic Fuel</strong>。Leo 将根据登记的 ID 手动为您注入燃料。
+                激活成功后，后台将为您注入 <strong id="reward-amount">1000</strong> Logic Fuel 奖励。
                 <div class="info-link" onclick="window.open('https://janus-os.com/', '_blank')">什么是 JanusOS？/ 去哪里注册？
                 </div>
             </div>
 
             <div class="input-group" style="text-align: left;">
-                <label>账号 / 邮箱 / 临时昵称</label>
-                <input type="text" id="input-user" placeholder="填写您的JANUS账号或临时昵称" spellcheck="false">
-                <div style="font-size: 0.55rem; color: #555; margin-top: 5px;">* 新用户可先填昵称，激活后请尽快前往官网注册任务。</div>
+                <label>Janus 账号 / 邮箱 / 临时备注</label>
+                <input type="text" id="input-user" placeholder="填写您的JANUS账号或临时备注" spellcheck="false">
+                <div style="font-size: 0.55rem; color: #555; margin-top: 5px;">* 新用户可填备注名，之后凭此向 Leo 申请积分。</div>
             </div>
 
             <p style="font-size: 0.7rem; color: #888; margin-top: 20px;">
-                卡带型号: <span id="target-model" style="color: var(--neon);">M5W</span>
+                资产名称: <span id="asset-name" style="color: var(--neon);">---</span>
             </p>
 
             <button id="claim-btn" class="btn" onclick="handleClaim()">同步并解锁固件 (SYNC_AND_UNLOCK)</button>
@@ -423,208 +398,213 @@
     </div>
 
     <script>
-        // --- 配置 ---
         const SUPABASE_URL = 'https://cepskrtlplsfyqiynpvo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_ShvyXR8a-hPBW43n0-FXMg_bPyDVsyJ';
-        const TARGET_TABLE = 'logic_inventory';
+        const _supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-        const debug = document.getElementById('debug-panel');
-        let _supabase;
-        let targetAsset = null;
+        let targetData = null;
 
-        // --- 启动动效逻辑 ---
-        const bootLogs = [
-            "KERNEL_INIT: [ OK ]",
-            "SYNCING_OBSIDIAN_REALM...",
-            "DECRYPTING_GATEWAY_V1.1.0",
-            "ESTABLISHING_LISP_BUFFER...",
-            "SCANNING_LOCAL_STORAGE...",
-            "ENV_CALIBRATION_COMPLETE",
-            "WELCOME_ARCHITECT_SEVEN..."
-        ];
+        // 视觉色彩协议 (VCP) 映射
+        const VCP_COLORS = {
+            'K': '#0A0A0A', // 黑曜石奇点 (底色，霓虹色保持白色或浅灰)
+            'P': '#0057FF', // 超频钴蓝
+            'M': '#FFB800', // 水汽琥珀
+            'I': '#39FF14', // 神经荧光绿
+            'S': '#FF003C', // 警示深红
+            'G': '#8A2BE2'  // 量子深紫
+        };
 
-        async function runBootSequence() {
-            // 强制确保启动页显示
-            const bootScreen = document.getElementById('boot-screen');
-            bootScreen.style.display = 'flex';
+        function switchTheme(categoryId) {
+            const color = VCP_COLORS[categoryId] || '#39FF14';
+            document.documentElement.style.setProperty('--neon', color);
+            // 如果是黑曜石颜色，增加发光补偿
+            if (categoryId === 'K') {
+                document.documentElement.style.setProperty('--neon', '#FFFFFF');
+                document.getElementById('debug-panel').style.background = 'rgba(255,255,255,0.1)';
+            } else {
+                document.getElementById('debug-panel').style.background = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, 0.05)`;
+            }
+        }
 
+        // 启动动效逻辑
+        function runBoot() {
+            const logs = ["KERNEL_INIT", "VCP_READY", "MODELS_REGISTRY_SYNC", "BASE64_DECODER_READY", "WELCOME_SEVEN"];
             const container = document.getElementById('boot-logs-container');
-            for (let log of bootLogs) {
-                const el = document.createElement('div');
-                el.className = 'boot-log';
-                el.innerText = "> " + log;
-                container.appendChild(el);
-                // 稍快一点的节奏
-                await new Promise(r => setTimeout(r, 80 + Math.random() * 100));
-            }
-
-            // 结束动画
-            setTimeout(() => {
-                bootScreen.style.transition = 'opacity 0.8s ease';
-                bootScreen.style.opacity = '0';
-                document.body.style.opacity = '1'; // 显示 body
+            logs.forEach((l, i) => {
                 setTimeout(() => {
-                    bootScreen.style.display = 'none';
-                }, 800);
-            }, 600);
+                    const div = document.createElement('div');
+                    div.className = 'boot-log';
+                    div.innerText = "> " + l + "... [ OK ]";
+                    container.appendChild(div);
+                }, i * 150);
+            });
+            setTimeout(() => {
+                document.getElementById('boot-screen').style.opacity = '0';
+                document.body.style.opacity = '1';
+                setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 1000);
+            }, 800);
         }
 
-        // --- 页面初始化 ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlUid = urlParams.get('uid');
-
-        // 立即执行启动逻辑，不完全依赖 onload
-        document.addEventListener('DOMContentLoaded', () => {
-            runBootSequence();
-        });
-
-        try {
-            if (window.supabase) {
-                _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        window.onload = () => {
+            runBoot();
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                document.getElementById('input-code').value = code;
+                handleVerify();
             }
-        } catch (e) { console.error(e); }
+        };
 
-        // 输入格式化
-        const inputField = document.getElementById('input-code');
-        inputField.addEventListener('input', e => {
+        // 激活码格式化 (自动识别 JLS-K01-XXXX-XXXX 格式)
+        document.getElementById('input-code').addEventListener('input', e => {
             let val = e.target.value.replace(/[^\dA-Za-z]/g, '');
-            let formatted = '';
-            for (let i = 0; i < val.length; i++) {
-                if (i > 0 && i % 4 === 0) formatted += '-';
-                formatted += val[i];
+            // 如果是以 JLS 开头，跳过前三位处理
+            let f = '';
+            if (val.toUpperCase().startsWith('JLS')) {
+                f = 'JLS-';
+                let sub = val.substring(3);
+                for (let i = 0; i < sub.length; i++) {
+                    if (i > 0 && i % 3 === 0 && i < 4) f += '-'; // 处理 K01 部分
+                    else if (i >= 3 && (i - 3) % 4 === 0) f += '-'; // 处理随机部分
+                    f += sub[i].toUpperCase();
+                }
+            } else {
+                for (let i = 0; i < val.length; i++) {
+                    if (i > 0 && i % 4 === 0) f += '-';
+                    f += val[i].toUpperCase();
+                }
             }
-            e.target.value = formatted;
-            updateLog('INPUT: ' + (formatted || 'WAITING...'));
+            e.target.value = f;
+            updateLog('INPUT_BUFFER: ' + f);
         });
 
-        function updateLog(msg, isError = false) {
+        function updateLog(m, isErr = false) {
             const log = document.getElementById('log-text');
-            log.innerText = msg;
-            log.className = isError ? 'error' : '';
+            log.innerText = m;
+            log.className = isErr ? 'error' : '';
         }
-
-        // --- 核心业务逻辑 ---
 
         async function handleVerify() {
+            const codeStr = document.getElementById('input-code').value.trim();
             const btn = document.getElementById('verify-btn');
-            const codeInput = inputField.value.trim();
-            const codeRaw = codeInput.replace(/-/g, '');
-
-            if (codeInput.length < 12) {
-                updateLog('ERR: 格式不完整', true);
-                return;
-            }
+            if (codeStr.length < 10) return updateLog('ERR: 长度不足', true);
 
             btn.disabled = true;
-            updateLog('正在核对逻辑指纹...');
-
-            const localRecord = localStorage.getItem('jls_redeemed_' + codeRaw.toLowerCase());
+            updateLog('正在核验全球逻辑清单...');
 
             try {
                 const { data, error } = await _supabase
-                    .from(TARGET_TABLE)
-                    .select('*')
-                    .or(`id.ilike.${codeInput},id.ilike.${codeRaw}`)
+                    .from('logic_inventory')
+                    .select('*, models_registry(*)')
+                    .ilike('id', codeStr)
                     .single();
 
                 if (error || !data) {
-                    updateLog('ERR: 资产未登记', true);
+                    updateLog('ERR: 资产码无效', true);
                     btn.disabled = false;
-                } else if (data.is_active === true) {
-                    if (localRecord === 'true') {
-                        updateLog('WELCOME_BACK, ARCHITECT.');
-                        renderFirmware(data, true);
-                    } else {
-                        updateLog('ERR: 资产已被他人占领', true);
-                        btn.disabled = false;
-                    }
+                    return;
+                }
+
+                targetData = data;
+
+                // 根据分类 ID 切换主题
+                const catId = data.models_registry.model_id.split('-')[1].charAt(0);
+                switchTheme(catId);
+
+                if (data.is_active && localStorage.getItem('jls_redeemed_' + data.id.toLowerCase()) !== 'true') {
+                    updateLog('ERR: 资产已被他人占领', true);
+                    btn.disabled = false;
+                    return;
+                }
+
+                if (data.is_active) {
+                    updateLog('RECOGNIZED: 已授权资产');
+                    renderFirmware(data);
                 } else {
-                    targetAsset = data;
-                    document.getElementById('target-model').innerText = data.model_id || 'M5W';
-                    if (urlUid) document.getElementById('input-user').value = urlUid;
-                    updateLog('ALIGNED: 资产匹配成功');
+                    document.getElementById('asset-name').innerText = data.models_registry.name;
+                    document.getElementById('reward-amount').innerText = data.models_registry.initial_fuel || 1000;
                     document.getElementById('overlay').style.display = 'flex';
+                    updateLog('MATCH: 资产匹配成功');
                     btn.disabled = false;
                 }
             } catch (e) {
-                updateLog('ERR: 握手失败', true);
+                updateLog('ERR: 连接超时', true);
                 btn.disabled = false;
             }
         }
 
         async function handleClaim() {
-            const claimBtn = document.getElementById('claim-btn');
-            const userHandle = document.getElementById('input-user').value.trim() || 'ANON_CLIENT';
-            claimBtn.disabled = true;
+            const user = document.getElementById('input-user').value.trim() || 'ANON_USER';
+            const btn = document.getElementById('claim-btn');
+            btn.disabled = true;
             updateLog('正在注入逻辑燃料...');
 
             try {
-                const { error } = await _supabase
-                    .from(TARGET_TABLE)
-                    .update({ is_active: true, user_id: userHandle })
-                    .eq('id', targetAsset.id);
+                // 1. 更新激活状态
+                const { error: activeError } = await _supabase
+                    .from('logic_inventory')
+                    .update({ is_active: true, user_id: user })
+                    .eq('id', targetData.id);
 
-                if (!error) {
-                    const codeRaw = targetAsset.id.replace(/-/g, '').toLowerCase();
-                    localStorage.setItem('jls_redeemed_' + codeRaw, 'true');
-                    localStorage.setItem('jls_handle_' + codeRaw, userHandle);
-                    document.getElementById('overlay').style.display = 'none';
-                    renderFirmware(targetAsset, false);
-                } else {
-                    updateLog('ERR: 注入失败', true);
-                    claimBtn.disabled = false;
-                }
+                if (activeError) throw activeError;
+
+                // 2. 注入对账单 (Transaction) - 七哥/Leo 后台可见
+                const { error: txError } = await _supabase
+                    .from('transactions')
+                    .insert([{
+                        code_id: targetData.id,
+                        user_handle: user,
+                        model_id: targetData.model_id,
+                        fuel_amount: targetData.models_registry.initial_fuel || 1000,
+                        status: 'PENDING'
+                    }]);
+
+                if (txError) console.warn("TRANSACTION_LOG_FAILED", txError);
+
+                // 3. 本地持久化与界面切换
+                localStorage.setItem('jls_redeemed_' + targetData.id.toLowerCase(), 'true');
+                localStorage.setItem('jls_user_' + targetData.id.toLowerCase(), user);
+                document.getElementById('overlay').style.display = 'none';
+                renderFirmware(targetData);
+                updateLog('SYNC_SUCCESS');
+
             } catch (e) {
-                updateLog('ERR: 异常中断', true);
-                claimBtn.disabled = false;
+                console.error(e);
+                updateLog('ERR: 同步链路故障', true);
+                btn.disabled = false;
             }
         }
 
-        // --- 动态解密动效 ---
-        const LISP_SOURCE = `(defmacro m5w-core-logic (payload)
-  \`(begin
-     (inject-fuel ,payload)
-     (sync-state :janus-os)
-     (emit-signal :aligned)))`;
-
-        async function renderFirmware(asset, isRecovery) {
+        async function renderFirmware(data) {
             document.getElementById('mod-decoder').style.display = 'none';
-            const modFirmware = document.getElementById('mod-firmware');
-            modFirmware.style.display = 'block';
-
-            if (isRecovery) {
-                document.getElementById('firmware-log').innerText = "> 资产已归档。正在重新加载镜像...";
-            }
+            document.getElementById('mod-firmware').style.display = 'block';
+            document.getElementById('display-model').innerText = data.models_registry.name;
 
             const pre = document.getElementById('lisp-code');
-            const percent = document.getElementById('decrypt-percent');
-            const copyWrapper = document.getElementById('copy-btn-wrapper');
-            pre.innerText = "";
+            const status = document.getElementById('firmware-log');
 
-            const lines = LISP_SOURCE.split('\n');
+            const rawLisp = atob(data.models_registry.lisp_code);
+            pre.innerText = "";
+            status.innerText = "> 链路锁定。正在注入固件镜像...";
+
+            const lines = rawLisp.split('\n');
             for (let i = 0; i < lines.length; i++) {
                 pre.innerText += lines[i] + '\n';
-                percent.innerText = Math.round(((i + 1) / lines.length) * 100) + "%";
-                await new Promise(r => setTimeout(r, 300)); // 稍快一点的解密速度
+                await new Promise(r => setTimeout(r, 80));
             }
 
-            setTimeout(() => {
-                percent.innerText = "COMPLETE";
-                copyWrapper.style.display = "block";
-                const codeRaw = asset.id.replace(/-/g, '').toUpperCase();
-                const handle = localStorage.getItem('jls_handle_' + codeRaw.toLowerCase()) || 'ANON';
-                document.getElementById('sync-proof').innerText = `PROOF: [${codeRaw}] SYNCED TO [${handle}] @ ${new Date().toLocaleDateString()}`;
-                document.getElementById('proof-container').style.display = 'block';
-            }, 500);
+            status.innerText = "> 固件注入成功。同步协议: 稳定。";
+            document.getElementById('copy-btn-wrapper').style.display = 'block';
+
+            const user = localStorage.getItem('jls_user_' + data.id.toLowerCase()) || data.user_id || 'ANON';
+            document.getElementById('sync-proof').innerText = `PROOF: [${data.id.toUpperCase()}] -> [${user}]`;
+            document.getElementById('proof-container').style.display = 'block';
         }
 
         function copyFirmware() {
-            const code = document.getElementById('lisp-code').innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                alert("固件代码已存入缓冲区");
-            });
+            const c = document.getElementById('lisp-code').innerText;
+            navigator.clipboard.writeText(c).then(() => alert("代码已复制到剪贴板"));
         }
-
     </script>
 </body>
 
